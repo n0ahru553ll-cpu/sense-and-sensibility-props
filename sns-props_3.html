@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="S&S Props">
+<meta name="theme-color" content="#12100E">
+<title>S&S Props</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:      #12100E;
+    --parchment:#F5EFE0;
+    --cream:    #FAF6EC;
+    --gold:     #C9963A;
+    --gold-dim: #8A6425;
+    --red:      #9B2C2C;
+    --green:    #2D5A3D;
+    --purple:   #4A3566;
+    --slate:    #2E4057;
+    --muted:    #7A7060;
+    --border:   #DDD4B8;
+    --card:     #FFFDF6;
+    --shadow:   rgba(18,16,14,0.12);
+    --safe-top: env(safe-area-inset-top);
+    --safe-bot: env(safe-area-inset-bottom);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%; width: 100%;
+    background: var(--ink);
+    font-family: 'DM Mono', monospace;
+    color: var(--ink);
+    overscroll-behavior: none;
+  }
+
+  /* ── APP SHELL ── */
+  #app {
+    display: flex; flex-direction: column;
+    height: 100dvh;
+    background: var(--cream);
+  }
+
+  /* ── HEADER ── */
+  #header {
+    background: var(--ink);
+    padding: calc(var(--safe-top) + 12px) 16px 12px;
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+    border-bottom: 2px solid var(--gold);
+  }
+  #header-back {
+    color: var(--gold); font-size: 20px; background: none; border: none;
+    cursor: pointer; padding: 4px 8px 4px 0; display: none; line-height: 1;
+  }
+  #header-title {
+    flex: 1;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 600;
+    color: var(--parchment);
+    letter-spacing: 0.02em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #header-sub {
+    font-size: 9px; color: var(--gold); letter-spacing: 0.12em;
+    text-transform: uppercase; margin-top: 1px;
+  }
+  #header-actions { display: flex; gap: 8px; align-items: center; }
+  .icon-btn {
+    background: none; border: none; color: var(--gold);
+    font-size: 18px; cursor: pointer; padding: 4px;
+    line-height: 1; border-radius: 4px;
+  }
+
+  /* ── SEARCH BAR ── */
+  #search-bar {
+    background: var(--ink);
+    padding: 0 16px 10px;
+    flex-shrink: 0;
+  }
+  #search-input {
+    width: 100%; background: #1E1B17;
+    border: 1px solid #3A3228; border-radius: 8px;
+    color: var(--parchment); font-family: 'DM Mono', monospace;
+    font-size: 13px; padding: 9px 12px;
+    outline: none; transition: border-color 0.2s;
+  }
+  #search-input::placeholder { color: #6B5F4A; }
+  #search-input:focus { border-color: var(--gold); }
+
+  /* ── FILTER PILLS ── */
+  #filter-bar {
+    background: var(--ink);
+    padding: 0 16px 12px;
+    display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0;
+    scrollbar-width: none;
+  }
+  #filter-bar::-webkit-scrollbar { display: none; }
+  .pill {
+    white-space: nowrap; border-radius: 100px;
+    border: 1px solid #3A3228; background: #1E1B17;
+    color: #8A7A62; font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 0.06em;
+    padding: 5px 11px; cursor: pointer; transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .pill.active { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+
+  /* ── PROP LIST ── */
+  #list-view {
+    flex: 1; overflow-y: auto;
+    padding: 8px 12px calc(var(--safe-bot) + 16px);
+  }
+
+  .section-header {
+    font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); padding: 16px 4px 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  .group-header {
+    font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold-dim); padding: 10px 4px 4px;
+  }
+
+  .prop-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--card); border-radius: 10px;
+    margin-bottom: 5px; padding: 11px 12px;
+    box-shadow: 0 1px 3px var(--shadow);
+    cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
+    border: 1px solid transparent;
+    -webkit-user-select: none; user-select: none;
+  }
+  .prop-row:active { transform: scale(0.98); box-shadow: 0 0 0 var(--shadow); }
+  .prop-row.has-data { border-color: var(--gold); }
+
+  .prop-status-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .prop-name {
+    flex: 1; font-family: 'Cormorant Garamond', serif;
+    font-size: 15px; font-weight: 600; line-height: 1.2;
+    color: var(--ink);
+  }
+  .prop-meta {
+    font-size: 9px; color: var(--muted); margin-top: 1px;
+    font-family: 'DM Mono', monospace;
+  }
+  .prop-indicators { display: flex; gap: 4px; align-items: center; }
+  .ind { font-size: 11px; opacity: 0.5; }
+  .ind.active { opacity: 1; }
+  .prop-chevron { color: var(--border); font-size: 13px; flex-shrink: 0; }
+
+  /* ── DETAIL VIEW ── */
+  #detail-view {
+    display: none; flex: 1; overflow-y: auto;
+    padding: 0 0 calc(var(--safe-bot) + 80px);
+  }
+
+  .detail-hero {
+    background: var(--ink); padding: 16px;
+    border-bottom: 1px solid var(--gold);
+  }
+  .detail-group-label {
+    font-size: 9px; letter-spacing: 0.14em; color: var(--gold);
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .detail-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px; font-weight: 600; color: var(--parchment);
+    line-height: 1.1; margin-bottom: 12px;
+  }
+  .detail-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 100px; font-weight: 500;
+  }
+  .chip-status-needed    { background: var(--red);    color: #FFE4E4; }
+  .chip-status-pull      { background: var(--green);  color: #D4FFE4; }
+  .chip-status-various   { background: var(--purple); color: #EAD4FF; }
+  .chip-status-tbd       { background: var(--gold-dim); color: #FFF0CC; }
+  .chip-info { background: #2A2520; color: #A89880; }
+
+  .detail-body { padding: 14px 14px 0; }
+
+  .detail-card {
+    background: var(--card); border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 12px; overflow: hidden;
+  }
+  .detail-card-header {
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); padding: 10px 14px 0;
+  }
+
+  /* Notes read-only */
+  .detail-notes-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px; line-height: 1.55; color: var(--ink);
+    padding: 6px 14px 12px; font-style: italic;
+  }
+
+  /* Status picker */
+  .status-picker {
+    display: flex; flex-wrap: wrap; gap: 7px;
+    padding: 12px 16px 14px;
+  }
+  .status-opt {
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 6px 13px; border-radius: 100px; font-weight: 500;
+    border: 2px solid transparent; cursor: pointer;
+    opacity: 0.38; transition: opacity 0.15s, border-color 0.15s;
+    font-family: 'DM Mono', monospace;
+  }
+  .status-opt.selected { opacity: 1; border-color: rgba(255,255,255,0.7); }
+  .status-opt:active { transform: scale(0.96); }
+
+  /* Editable text areas */
+  .field-label {
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); padding: 10px 14px 4px; display: block;
+  }
+  .field-input {
+    width: 100%; background: transparent;
+    border: none; border-top: 1px solid var(--border);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px; color: var(--ink); line-height: 1.55;
+    padding: 10px 14px; resize: none; outline: none;
+    min-height: 80px;
+  }
+  .field-input::placeholder { color: var(--border); font-style: italic; }
+  .field-input:focus { background: #FFFEF8; }
+
+  /* Spent / hours row */
+  .fields-row { display: flex; }
+  .fields-row .field-half { flex: 1; }
+  .fields-row .field-half + .field-half { border-left: 1px solid var(--border); }
+  .field-inline {
+    width: 100%; background: transparent;
+    border: none; border-top: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px; color: var(--ink);
+    padding: 10px 14px; outline: none;
+  }
+  .field-inline::placeholder { color: var(--border); }
+  .field-inline:focus { background: #FFFEF8; }
+
+  /* Image zones */
+  .img-zone-wrap { padding: 0 14px 14px; }
+  .img-zone-label {
+    font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 10px 14px 8px; color: var(--muted); display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .img-zone-label span { color: var(--muted); }
+  .img-zone-add-btn {
+    background: var(--gold); color: var(--ink);
+    border: none; border-radius: 100px;
+    font-size: 10px; font-family: 'DM Mono', monospace;
+    font-weight: 500; padding: 4px 12px;
+    cursor: pointer; letter-spacing: 0.04em;
+  }
+  .img-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 4px; min-height: 80px;
+  }
+  .img-grid.empty {
+    background: var(--parchment); border-radius: 8px;
+    border: 1px dashed var(--border);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 80px; grid-template-columns: unset;
+  }
+  .img-placeholder-text {
+    font-size: 10px; color: var(--border); letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .img-thumb-wrap {
+    position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden;
+    background: var(--parchment);
+  }
+  .img-thumb {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .img-del {
+    position: absolute; top: 3px; right: 3px;
+    background: rgba(18,16,14,0.75); color: white;
+    border: none; border-radius: 50%; width: 20px; height: 20px;
+    font-size: 11px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; line-height: 1;
+  }
+  .img-file-input { display: none; }
+
+  /* Save indicator */
+  #save-toast {
+    position: fixed; bottom: calc(var(--safe-bot) + 70px); left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--green); color: #D4FFE4;
+    font-size: 11px; letter-spacing: 0.08em;
+    padding: 8px 18px; border-radius: 100px;
+    opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 100;
+    white-space: nowrap;
+  }
+  #save-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── BOTTOM NAV ── */
+  #bottom-nav {
+    background: var(--ink); border-top: 1px solid #2A2520;
+    padding: 10px 0 calc(var(--safe-bot) + 6px);
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    flex-shrink: 0;
+  }
+  .nav-btn {
+    background: none; border: none; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    color: #5A4E3C; padding: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+  .nav-btn.active { color: var(--gold); }
+  .nav-icon { font-size: 18px; line-height: 1; }
+  .nav-label { font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* ── DASHBOARD VIEW ── */
+  #dash-view {
+    display: none; flex: 1; overflow-y: auto;
+    padding: 14px 14px calc(var(--safe-bot) + 20px);
+  }
+  .dash-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 600; color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .dash-stat-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-bottom: 14px;
+  }
+  .dash-stat {
+    background: var(--card); border-radius: 12px;
+    border: 1px solid var(--border); padding: 14px;
+    text-align: center;
+  }
+  .dash-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px; font-weight: 600; color: var(--ink); line-height: 1;
+  }
+  .dash-stat-label {
+    font-size: 9px; letter-spacing: 0.1em; color: var(--muted);
+    text-transform: uppercase; margin-top: 4px;
+  }
+  .dash-stat.highlight { background: var(--ink); border-color: var(--gold); }
+  .dash-stat.highlight .dash-stat-num { color: var(--gold); }
+  .dash-stat.highlight .dash-stat-label { color: #8A7A62; }
+
+  .dash-section-title {
+    font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin: 16px 0 8px;
+  }
+  .dash-item {
+    background: var(--card); border-radius: 10px;
+    border: 1px solid var(--border); padding: 10px 14px;
+    margin-bottom: 6px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .dash-item-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px; font-weight: 600; flex: 1; line-height: 1.2;
+  }
+  .dash-item-tag {
+    font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 100px;
+    background: var(--parchment); color: var(--muted); flex-shrink: 0;
+  }
+
+  .export-btn {
+    width: 100%; background: var(--ink); color: var(--gold);
+    border: 1px solid var(--gold); border-radius: 10px;
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    letter-spacing: 0.08em; padding: 14px;
+    cursor: pointer; margin-top: 16px;
+    transition: background 0.2s;
+  }
+  .export-btn:active { background: #1E1B17; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    color: var(--muted); font-size: 13px;
+  }
+
+  /* ── QUESTIONS VIEW ── */
+  #questions-view {
+    display: none; flex: 1; overflow-y: auto;
+    padding: 0 0 calc(var(--safe-bot) + 20px);
+  }
+  .q-recipient-block {
+    margin-bottom: 4px;
+  }
+  .q-recipient-header {
+    background: var(--ink); color: var(--gold);
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 12px 16px 8px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 10;
+    border-bottom: 1px solid #2A2520;
+  }
+  .q-email-btn {
+    background: var(--gold); color: var(--ink);
+    border: none; border-radius: 100px;
+    font-family: 'DM Mono', monospace; font-size: 9px;
+    font-weight: 500; letter-spacing: 0.06em;
+    padding: 5px 13px; cursor: pointer;
+  }
+  .q-item {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 11px 16px; cursor: pointer;
+  }
+  .q-item:active { background: var(--parchment); }
+  .q-prop-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px; font-weight: 600; color: var(--muted);
+    margin-bottom: 3px;
+  }
+  .q-text {
+    font-size: 13px; color: var(--ink); line-height: 1.45;
+  }
+  .q-empty {
+    text-align: center; padding: 60px 24px;
+    color: var(--muted); font-size: 12px; line-height: 1.7;
+  }
+  .q-empty-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.3; }
+
+  /* Multi-question cards */
+  .q-card-list { padding: 8px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .q-card {
+    background: var(--parchment); border-radius: 8px;
+    border: 1px solid var(--border); overflow: hidden;
+  }
+  .q-card-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px 0; justify-content: space-between;
+  }
+  .q-card-select {
+    flex: 1; background: transparent; border: none;
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    color: var(--gold); outline: none; cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+    letter-spacing: 0.04em;
+  }
+  .q-card-del {
+    background: none; border: none; color: var(--border);
+    font-size: 16px; cursor: pointer; padding: 0 2px;
+    line-height: 1; flex-shrink: 0;
+  }
+  .q-card-del:active { color: var(--red); }
+  .q-card-textarea {
+    width: 100%; background: transparent; border: none;
+    border-top: 1px solid var(--border);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 14px; color: var(--ink); line-height: 1.5;
+    padding: 8px 10px; resize: none; outline: none;
+    min-height: 64px;
+  }
+  .q-card-textarea::placeholder { color: var(--border); font-style: italic; }
+  .q-card-textarea:focus { background: #FFFEF8; }
+  .q-add-btn {
+    width: 100%; background: transparent;
+    border: 1px dashed var(--border); border-radius: 8px;
+    color: var(--gold-dim); font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 0.08em;
+    padding: 10px; cursor: pointer; margin-top: 2px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .q-add-btn:active { border-color: var(--gold); color: var(--gold); }
+
+  /* Directed-to selector in detail */
+  .directed-row {
+    display: flex; align-items: center; gap: 0;
+    border-top: 1px solid var(--border);
+  }
+  .directed-label {
+    font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); padding: 10px 14px; white-space: nowrap; flex-shrink: 0;
+  }
+  .directed-select {
+    flex: 1; background: transparent; border: none;
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    color: var(--gold); padding: 10px 14px 10px 0;
+    outline: none; cursor: pointer; appearance: none;
+    -webkit-appearance: none;
+  }
+  .directed-arrow { color: var(--border); padding-right: 14px; font-size: 10px; flex-shrink: 0; }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- HEADER -->
+  <div id="header">
+    <button id="header-back" onclick="showList()">‹</button>
+    <div style="flex:1; min-width:0;">
+      <div id="header-title">Sense &amp; Sensibility</div>
+      <div id="header-sub">Props Design &amp; Management</div>
+    </div>
+    <div id="header-actions">
+      <button class="icon-btn" onclick="showDash()" title="Dashboard">◈</button>
+    </div>
+  </div>
+
+  <!-- SEARCH (list only) -->
+  <div id="search-bar">
+    <input id="search-input" type="search" placeholder="Search props…"
+           oninput="onSearch(this.value)" autocomplete="off" autocorrect="off">
+  </div>
+
+  <!-- FILTER PILLS -->
+  <div id="filter-bar">
+    <button class="pill active" onclick="setFilter('all',this)">All</button>
+    <button class="pill" onclick="setFilter('needed',this)">Needed</button>
+    <button class="pill" onclick="setFilter('pull',this)">Pull Stock</button>
+    <button class="pill" onclick="setFilter('noted',this)">Has Notes</button>
+    <button class="pill" onclick="setFilter('photos',this)">Has Photos</button>
+    <button class="pill" onclick="setFilter('questions',this)">Has Questions</button>
+    <button class="pill" onclick="setFilter('FURNITURE',this)">Furniture</button>
+    <button class="pill" onclick="setFilter('PROPS',this)">Props</button>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div id="list-view"></div>
+
+  <!-- DETAIL VIEW -->
+  <div id="detail-view"></div>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="dash-view"></div>
+
+  <!-- QUESTIONS VIEW -->
+  <div id="questions-view"></div>
+
+  <!-- SAVE TOAST -->
+  <div id="save-toast">✓ Saved</div>
+
+  <!-- BOTTOM NAV -->
+  <div id="bottom-nav">
+    <button class="nav-btn active" id="nav-list" onclick="showList()">
+      <span class="nav-icon">☰</span>
+      <span class="nav-label">Props</span>
+    </button>
+    <button class="nav-btn" id="nav-questions" onclick="showQuestions()">
+      <span class="nav-icon">✉</span>
+      <span class="nav-label">Questions</span>
+    </button>
+    <button class="nav-btn" id="nav-dash" onclick="showDash()">
+      <span class="nav-icon">◈</span>
+      <span class="nav-label">Dashboard</span>
+    </button>
+    <button class="nav-btn" id="nav-export" onclick="exportData()">
+      <span class="nav-icon">↑</span>
+      <span class="nav-label">Export</span>
+    </button>
+  </div>
+
+</div>
+
+<script>
+// ── PROP DATA ──────────────────────────────────────────────────────────────────
+const PROPS_DATA = [{"id": "side_chairs__matching_set_of_4__0", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Side Chairs (matching set of 4)", "qty": 4, "status": "Potentially Pull Stock", "notes": "4 matching chairs", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "arm_chairs___elegant__matching_set_of_2__1", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Arm Chairs \u2014 elegant (matching set of 2)", "qty": 2, "status": "Potentially Pull Stock", "notes": "2 matching elegant arm chairs", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "side_tables__similar__set_of_2__2", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Side Tables (similar, set of 2)", "qty": 2, "status": "Potentially Pull Stock", "notes": "2 similar side tables", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "accent_table__thinner__3", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Accent Table (thinner)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Tea Caddy Box tracked separately as P-001.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "writing_table_with_drawer_4", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Writing Table with Drawer", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "piano_forte_5", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Piano Forte", "qty": 1, "status": "Potentially Pull Stock", "notes": "Needs piano shawl P-003. Retrofit keyboard \u2014 confirm scope with shop.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 2.0}, {"id": "piano_bench_6", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Piano Bench", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "chaise_7", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Chaise", "qty": 1, "status": "Potentially Pull Stock", "notes": "Looking to use chaise from Little Women, Spring 2026.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "rehearsal_costume_racks__tracking_panels_8", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Rehearsal Costume Racks (tracking panels)", "qty": 4, "status": "Potentially Pull Stock", "notes": "Not a traditional prop \u2014 production tracking use.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0}, {"id": "pouf_9", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Pouf", "qty": 1, "status": "Potentially Pull Stock", "notes": "Confirm with Nisi whether needed. May require reupholstering if pulled.", "budget": "$100\u2013$100", "hrs": 12.0}, {"id": "rolling_seat_with_storage_10", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Rolling Seat with Storage", "qty": 1, "status": "Potentially Pull Stock", "notes": "Custom build \u2014 est. 60 h labor + $471 materials. Breakdown: 3x Sandeply $195, 1x Birch $85, 1x 1/4 plywood $25, moulding 28LF $100, casters $36, hinge $15, paint/finish $30, contingency $30. Budget gap vs original $400 \u2014 confirm with Veronica.", "budget": "$471\u2013$471", "hrs": 60.0}, {"id": "foliage___vines___set_dressing_11", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Foliage / Vines \u2014 set dressing", "qty": 1, "status": "Potentially Pull Stock", "notes": "Quantity and placement TBC with scenic designer.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 6.0}, {"id": "curtains___custom_build__set_of_2__12", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Curtains \u2014 custom build (set of 2)", "qty": 2, "status": "Needed", "notes": "Custom build \u2014 2 sets. 4 h shop time, $150 materials.", "budget": "$150\u2013$150", "hrs": 5.0}, {"id": "hat_retail_display_13", "section": "FURNITURE", "group": "FURNITURE \u2014 BOTH ACTS", "name": "Hat Retail Display", "qty": 1, "status": "Needed", "notes": "Retail hat display repurposed for stage. Sketch or rendering needed to confirm how this translates to the set. Confirm what is needed and coordinate with Costume Designer Devon re: hat selection and display.", "budget": "TBD", "hrs": 20.0}, {"id": "chandelier___large__fancy_14", "section": "FURNITURE", "group": "Chandeliers", "name": "Chandelier \u2014 large, fancy", "qty": 1, "status": "Potentially Pull Stock", "notes": "1 large fancy chandelier. Potentially Pull Stock \u2014 1 h shop time.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "chandeliers___medium__set_of_2___finish__15", "section": "FURNITURE", "group": "Chandeliers", "name": "Chandeliers \u2014 medium (set of 2), finish change needed", "qty": 2, "status": "Needed", "notes": "2 medium chandeliers requiring finish change. 10 h shop time allocated.", "budget": "TBD", "hrs": 12.0}, {"id": "furniture_cover___piano__large_sheet__16", "section": "FURNITURE", "group": "Furniture Covers", "name": "Furniture Cover \u2014 Piano (large sheet)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Larger size for piano.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "furniture_covers___chairs__small_sheets__17", "section": "FURNITURE", "group": "Furniture Covers", "name": "Furniture Covers \u2014 Chairs (small sheets)", "qty": 2, "status": "Potentially Pull Stock", "notes": "2 smaller sheets for chairs.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "furniture_cover___piano__decorative_vers_18", "section": "FURNITURE", "group": "Furniture Covers", "name": "Furniture Cover \u2014 Piano (decorative version)", "qty": 1, "status": "Needed", "notes": "Decorative version of the piano cover, distinct from plain sheet P-030A. Coordinate fabric and style with Devon.", "budget": "TBD", "hrs": 1.0}, {"id": "bed_dressing___sheet_or_fabric_cover_for_19", "section": "FURNITURE", "group": "Furniture Covers", "name": "Bed Dressing \u2014 sheet or fabric cover for chaise (F-08)", "qty": 1, "status": "Needed", "notes": "Placeholder \u2014 chaise (F-08) to double as bed (pg. 116). Dress with sheet or similar. Confirm with Nisi re: staging and with Devon re: fabric/colour. Added v8.", "budget": "TBD", "hrs": 0.5}, {"id": "letter__4__wide__wax_seal____sc_1_mrs__d_20", "section": "PROPS", "group": "Paper Props", "name": "Letter (4\" wide, wax seal) \u2014 Sc 1 Mrs. Dashwood", "qty": 1, "status": "Potentially Pull Stock", "notes": "Make in shop. Use cream/ivory laid paper or parchment-style cardstock. Age with diluted coffee/tea wash. Seal with red wax. No bright white \u2014 warm off-white only. Folded to approx 4 inch wide, no envelope.", "budget": "$10\u2013$10", "hrs": 2.0}, {"id": "writing_paper__blank__21", "section": "PROPS", "group": "Paper Props", "name": "Writing Paper (blank)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Make in shop. Use cream/ivory laid paper or parchment-style cardstock. Age with diluted coffee/tea wash. Seal with red wax. No bright white \u2014 warm off-white only. Folded to approx 4 inch wide, no envelope.", "budget": "$2\u2013$2", "hrs": 0.5}, {"id": "ivory_copy_paper___shop_stock_22", "section": "PROPS", "group": "Paper Props", "name": "Ivory Copy Paper \u2014 shop stock", "qty": 1, "status": "Needed", "notes": "Ivory copy paper for shop use across letter and paper props.", "budget": "$15\u2013$15", "hrs": 0.5}, {"id": "letter__4__wide__wax_seal____sc_3_outgoi_23", "section": "PROPS", "group": "Paper Props", "name": "Letter (4\" wide, wax seal) \u2014 Sc 3 outgoing", "qty": 1, "status": "Potentially Pull Stock", "notes": "Make in shop. Use cream/ivory laid paper or parchment-style cardstock. Age with diluted coffee/tea wash. Seal with red wax. No bright white \u2014 warm off-white only. Folded to approx 4 inch wide, no envelope.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "letter__4__wide__wax_seal____picnic_scen_24", "section": "PROPS", "group": "Paper Props", "name": "Letter (4\" wide, wax seal) \u2014 Picnic scene", "qty": 1, "status": "Potentially Pull Stock", "notes": "Make in shop. Use cream/ivory laid paper or parchment-style cardstock. Age with diluted coffee/tea wash. Seal with red wax. No bright white \u2014 warm off-white only. Folded to approx 4 inch wide, no envelope.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "sealed_letters_for_marianne_25", "section": "PROPS", "group": "Paper Props", "name": "Sealed Letters for Marianne", "qty": 2, "status": "Needed", "notes": "Make in shop x2. Use cream/ivory laid paper or parchment-style cardstock. Age with diluted coffee/tea wash. Seal with red wax. No bright white \u2014 warm off-white only. Folded to approx 4 inch wide, no envelope.", "budget": "$3\u2013$3", "hrs": 0.5}, {"id": "letter__4__wide__wax_seal____berkeley_st_26", "section": "PROPS", "group": "Paper Props", "name": "Letter (4\" wide, wax seal) \u2014 Berkeley Street", "qty": 1, "status": "Potentially Pull Stock", "notes": "Make in shop. Use cream/ivory laid paper or parchment-style cardstock. Age with diluted coffee/tea wash. Seal with red wax. No bright white \u2014 warm off-white only. Folded to approx 4 inch wide, no envelope.", "budget": "$2\u2013$2", "hrs": 0.5}, {"id": "writing_paper___elinor__4__paper__27", "section": "PROPS", "group": "Paper Props", "name": "Writing Paper \u2014 Elinor (4\" paper)", "qty": 2, "status": "Needed", "notes": "Make in shop. Use cream/ivory laid paper or parchment-style cardstock. Age with diluted coffee/tea wash. Seal with red wax. No bright white \u2014 warm off-white only. Folded to approx 4 inch wide, no envelope.", "budget": "$2\u2013$2", "hrs": 0.5}, {"id": "envelope___elinor_s_letter_28", "section": "PROPS", "group": "Paper Props", "name": "Envelope \u2014 Elinor's letter", "qty": 1, "status": "Potentially Pull Stock", "notes": "Make in shop \u2014 period-style folded from laid paper. No envelope as such \u2014 letter folds and seals itself.", "budget": "$2\u2013$2", "hrs": 0.5}, {"id": "hardbound_folder___marianne_s_letters_to_29", "section": "PROPS", "group": "Paper Props", "name": "Hardbound Folder \u2014 Marianne's Letters to Willoughby", "qty": 1, "status": "Needed", "notes": "At least 6 letters inside, pre-written and aged.", "budget": "$5\u2013$5", "hrs": 2.5}, {"id": "writing_paper___sl__4__paper__with_writi_30", "section": "PROPS", "group": "Paper Props", "name": "Writing Paper \u2014 SL (4\" paper, with writing)", "qty": 4, "status": "Potentially Pull Stock", "notes": "Make in shop x4, pre-written.", "budget": "$2\u2013$2", "hrs": 0.5}, {"id": "letters_in_envelope___sl__willoughby_sty_31", "section": "PROPS", "group": "Paper Props", "name": "Letters in Envelope \u2014 SL (Willoughby style)", "qty": 2, "status": "Potentially Pull Stock", "notes": "Make in shop x2 Willoughby-style.", "budget": "$2\u2013$2", "hrs": 1.0}, {"id": "envelope___sl_letter_32", "section": "PROPS", "group": "Paper Props", "name": "Envelope \u2014 SL letter", "qty": 1, "status": "Potentially Pull Stock", "notes": "Make in shop \u2014 period-style folded from laid paper.", "budget": "$2\u2013$2", "hrs": 0.5}, {"id": "book_of_poetry___keats__large__sc_1__33", "section": "PROPS", "group": "Books", "name": "Book of Poetry \u2014 Keats (LARGE, Sc 1)", "qty": 1, "status": "Needed", "notes": "Larger version for Sc 1. Smaller version P-021A for Sc 3.", "budget": "$5\u2013$5", "hrs": 3.0}, {"id": "book_of_poetry___blake__large__sc_1__34", "section": "PROPS", "group": "Books", "name": "Book of Poetry \u2014 Blake (LARGE, Sc 1)", "qty": 1, "status": "Needed", "notes": "Larger version for Sc 1. Smaller version P-021B for Sc 3.", "budget": "$5\u2013$5", "hrs": 3.0}, {"id": "book_of_poetry___keats__smaller__sc_3__35", "section": "PROPS", "group": "Books", "name": "Book of Poetry \u2014 Keats (SMALLER, Sc 3)", "qty": 1, "status": "Needed", "notes": "Smaller/thinner than Sc 1 version P-012A.", "budget": "$5\u2013$5", "hrs": 1.0}, {"id": "book_of_poetry___blake__smaller__sc_3__36", "section": "PROPS", "group": "Books", "name": "Book of Poetry \u2014 Blake (SMALLER, Sc 3)", "qty": 1, "status": "Needed", "notes": "Smaller/thinner than Sc 1 version P-012B.", "budget": "$5\u2013$5", "hrs": 1.0}, {"id": "wrapped_parcel___book_of_birds__pocket_s_37", "section": "PROPS", "group": "Books", "name": "Wrapped Parcel \u2014 Book of Birds (pocket-sized)", "qty": 1, "status": "Needed", "notes": "Must fit in coat pocket. Distinct from unwrapped Book of Birds (P-029). Confirm pocket size with Costume Designer.", "budget": "$5\u2013$5", "hrs": 2.0}, {"id": "book_of_birds___unwrapped__elinor__38", "section": "PROPS", "group": "Books", "name": "Book of Birds \u2014 unwrapped (Elinor)", "qty": 1, "status": "Needed", "notes": "Distinct physical prop from wrapped parcel P-028. Same title, different copy.", "budget": "$5\u2013$5", "hrs": 0.5}, {"id": "bundle_of_books__wrapped_with_ribbon__39", "section": "PROPS", "group": "Books", "name": "Bundle of Books (wrapped with ribbon)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Little bundle tied with ribbon.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "new_copy_of_blake_poetry_book___willough_40", "section": "PROPS", "group": "Books", "name": "New Copy of Blake Poetry Book \u2014 Willoughby gift", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "copy_of_pope_poetry_book___colonel_brand_41", "section": "PROPS", "group": "Books", "name": "Copy of Pope Poetry Book \u2014 Colonel Brandon gift", "qty": 1, "status": "Needed", "notes": "", "budget": "$5\u2013$5", "hrs": 0.5}, {"id": "bound_folder_with_bird_drawings_42", "section": "PROPS", "group": "Books", "name": "Bound Folder with Bird Drawings", "qty": 1, "status": "Needed", "notes": "Same folder seen in London.", "budget": "$10\u2013$10", "hrs": 2.5}, {"id": "novels___colonel_brandon_gift_43", "section": "PROPS", "group": "Books", "name": "Novels \u2014 Colonel Brandon gift", "qty": 2, "status": "Needed", "notes": "Set of 2 novels.", "budget": "$20\u2013$20", "hrs": 0.5}, {"id": "china_tea_cups_with_saucers_44", "section": "PROPS", "group": "Tea & Tableware", "name": "China Tea Cups with Saucers", "qty": 2, "status": "Potentially Pull Stock", "notes": "Matching set of 2.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "plate_with_biscuits_45", "section": "PROPS", "group": "Tea & Tableware", "name": "Plate with Biscuits", "qty": 1, "status": "Needed", "notes": "Accompanies tea cups. Biscuits tracked separately.", "budget": "$10\u2013$40", "hrs": 1.0}, {"id": "decanter__wine__46", "section": "PROPS", "group": "Tea & Tableware", "name": "Decanter (wine)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Pull from stock \u2014 confirm before sourcing.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "wine_glasses_47", "section": "PROPS", "group": "Tea & Tableware", "name": "Wine Glasses", "qty": 3, "status": "Potentially Pull Stock", "notes": "Pull from stock \u2014 confirm before sourcing.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "bottle_48", "section": "PROPS", "group": "Tea & Tableware", "name": "Bottle", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "cups_49", "section": "PROPS", "group": "Tea & Tableware", "name": "Cups", "qty": 2, "status": "Potentially Pull Stock", "notes": "Matching set of 2.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "tea_tray_50", "section": "PROPS", "group": "Tea & Tableware", "name": "Tea Tray", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "kettle_51", "section": "PROPS", "group": "Tea & Tableware", "name": "Kettle", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "tea_cups_52", "section": "PROPS", "group": "Tea & Tableware", "name": "Tea Cups", "qty": 3, "status": "Potentially Pull Stock", "notes": "Set of 3 matching cups.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "biscuits__2__on_plate_53", "section": "PROPS", "group": "Tea & Tableware", "name": "Biscuits (2) on plate", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "pitcher_54", "section": "PROPS", "group": "Tea & Tableware", "name": "Pitcher", "qty": 1, "status": "Potentially Pull Stock", "notes": "Pull from stock.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "glasses_55", "section": "PROPS", "group": "Tea & Tableware", "name": "Glasses", "qty": 2, "status": "Potentially Pull Stock", "notes": "Pull from stock.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "crystal_glass_sherry_decanter_56", "section": "PROPS", "group": "Tea & Tableware", "name": "Crystal/Glass Sherry Decanter", "qty": 1, "status": "Potentially Pull Stock", "notes": "Pull from stock.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "crystal_glasses_on_tray_57", "section": "PROPS", "group": "Tea & Tableware", "name": "Crystal Glasses on Tray", "qty": 4, "status": "Potentially Pull Stock", "notes": "Pull from stock.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "small_plate_58", "section": "PROPS", "group": "Tea & Tableware", "name": "Small Plate", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "cheese__on_plate__59", "section": "PROPS", "group": "Tea & Tableware", "name": "Cheese (on plate)", "qty": 1, "status": "Needed", "notes": "Practical or prop.", "budget": "$15\u2013$15", "hrs": 1.0}, {"id": "olives__on_plate__60", "section": "PROPS", "group": "Tea & Tableware", "name": "Olives (on plate)", "qty": 1, "status": "Needed", "notes": "Practical or prop.", "budget": "$5\u2013$5", "hrs": 1.0}, {"id": "glass_of_wine_61", "section": "PROPS", "group": "Tea & Tableware", "name": "Glass of Wine", "qty": 1, "status": "Potentially Pull Stock", "notes": "Pull from stock.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "tea_set_62", "section": "PROPS", "group": "Tea & Tableware", "name": "Tea Set", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "tea_cups_63", "section": "PROPS", "group": "Tea & Tableware", "name": "Tea Cups", "qty": 2, "status": "Potentially Pull Stock", "notes": "Set of 2.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "plate_64", "section": "PROPS", "group": "Tea & Tableware", "name": "Plate", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "tea_cake__on_plate__65", "section": "PROPS", "group": "Tea & Tableware", "name": "Tea Cake (on plate)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Practical or prop.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "knife_66", "section": "PROPS", "group": "Tea & Tableware", "name": "Knife", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "pitcher___cleveland_67", "section": "PROPS", "group": "Tea & Tableware", "name": "Pitcher \u2014 Cleveland", "qty": 1, "status": "Potentially Pull Stock", "notes": "Pull from stock.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "glass___cleveland_68", "section": "PROPS", "group": "Tea & Tableware", "name": "Glass \u2014 Cleveland", "qty": 1, "status": "Potentially Pull Stock", "notes": "Pull from stock.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "bouquet_of_wilted_flowers_69", "section": "PROPS", "group": "Flowers & Botanicals", "name": "Bouquet of Wilted Flowers", "qty": 1, "status": "Potentially Pull Stock", "notes": "Struck/swapped during scene. Needs a vase \u2014 see P-014.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "bouquet_of_fresh_ostentatious_flowers__w_70", "section": "PROPS", "group": "Flowers & Botanicals", "name": "Bouquet of Fresh Ostentatious Flowers (wrapped)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Wrapped in paper, tied with 4\" twine.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "large_bunch_of_wild_flowers___willoughby_71", "section": "PROPS", "group": "Flowers & Botanicals", "name": "Large Bunch of Wild Flowers \u2014 Willoughby", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.5}, {"id": "smaller_bunch_of_flowers___colonel_brand_72", "section": "PROPS", "group": "Flowers & Botanicals", "name": "Smaller Bunch of Flowers \u2014 Colonel Brandon", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.5}, {"id": "bird_of_paradise_feather_73", "section": "PROPS", "group": "Flowers & Botanicals", "name": "Bird of Paradise Feather", "qty": 1, "status": "Needed", "notes": "Real vs. artificial \u2014 confirm sourcing.", "budget": "$20\u2013$20", "hrs": 1.0}, {"id": "red_berries___seasonal_decoration_74", "section": "PROPS", "group": "Flowers & Botanicals", "name": "Red Berries \u2014 seasonal decoration", "qty": 1, "status": "Needed", "notes": "Seasonal/wedding decoration.", "budget": "$10\u2013$25", "hrs": 0.5}, {"id": "tulips___seasonal_element_75", "section": "PROPS", "group": "Flowers & Botanicals", "name": "Tulips \u2014 seasonal element", "qty": 1, "status": "Needed", "notes": "Spring/wedding seasonal transition. Coordinate colour with costume designer Devon.", "budget": "$10\u2013$20", "hrs": 0.5}, {"id": "maple_leaves___seasonal_transition_76", "section": "PROPS", "group": "Flowers & Botanicals", "name": "Maple Leaves \u2014 seasonal transition", "qty": 1, "status": "Needed", "notes": "Autumn seasonal transition element.", "budget": "$5\u2013$15", "hrs": 0.5}, {"id": "stag_beetle_77", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Stag Beetle", "qty": 1, "status": "Needed", "notes": "", "budget": "$10\u2013$10", "hrs": 2.5}, {"id": "glass_jar_with_bug_78", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Glass Jar with Bug", "qty": 1, "status": "Potentially Pull Stock", "notes": "Pull from stock.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "magnifying_glass_79", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Magnifying Glass", "qty": 1, "status": "Potentially Pull Stock", "notes": "Two options pulled for review.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "brace_of_dead_birds_80", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Brace of Dead Birds", "qty": 1, "status": "Needed", "notes": "McKenzie building both birds. Get reference image before build begins.", "budget": "$30\u2013$30", "hrs": 15.0}, {"id": "metal_pail_81", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Metal Pail", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "crab__in_pail__82", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Crab (in pail)", "qty": 1, "status": "Needed", "notes": "Artificial/prop crab.", "budget": "$12\u2013$12", "hrs": 0.5}, {"id": "butterfly_net_83", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Butterfly Net", "qty": 1, "status": "Needed", "notes": "", "budget": "$15\u2013$15", "hrs": 0.5}, {"id": "sea_star_84", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Sea Star", "qty": 1, "status": "Needed", "notes": "Casting from real \u2014 pull from vault.", "budget": "$8\u2013$8", "hrs": 2.0}, {"id": "fishing_net_85", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Fishing Net", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "owl_pellet_86", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Owl Pellet", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "glass_jar_with_bugs__carries_from_p_013a_87", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Glass Jar with Bugs (carries from P-013A)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Pull from stock.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "magnifying_glass__carries_from_p_013b__88", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Magnifying Glass (carries from P-013B)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Two options pulled for review. Travels from Act 1 Sc 1.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "box___6_x6___filled_with_bird_feathers_89", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Box (~6\"x6\") filled with Bird Feathers", "qty": 1, "status": "Needed", "notes": "Contains P-108, P-109, P-110.", "budget": "$10\u2013$10", "hrs": 0.5}, {"id": "gull_feather_90", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Gull Feather", "qty": 1, "status": "Needed", "notes": "Inside P-107.", "budget": "$10\u2013$10", "hrs": 2.0}, {"id": "jay_feather_91", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Jay Feather", "qty": 1, "status": "Needed", "notes": "Inside P-107.", "budget": "$10\u2013$10", "hrs": 2.0}, {"id": "pheasant_feather_92", "section": "PROPS", "group": "Naturalist / Margaret", "name": "Pheasant Feather", "qty": 1, "status": "Needed", "notes": "Inside P-107.", "budget": "$10\u2013$10", "hrs": 2.0}, {"id": "handheld_luggage___fanny__matching_pair__93", "section": "PROPS", "group": "Luggage & Bags", "name": "Handheld Luggage \u2014 Fanny (matching pair)", "qty": 2, "status": "Potentially Pull Stock", "notes": "2 larger matching period pieces.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 3.0}, {"id": "handheld_luggage___john__medium_case__94", "section": "PROPS", "group": "Luggage & Bags", "name": "Handheld Luggage \u2014 John (medium case)", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 3.0}, {"id": "suitcases__simple_matching_95", "section": "PROPS", "group": "Luggage & Bags", "name": "Suitcases, simple matching", "qty": 3, "status": "Needed", "notes": "Set of 3 matching simple suitcases.", "budget": "$45\u2013$180", "hrs": 3.0}, {"id": "shoulder_bag___wicker_basket__fanny_pack_96", "section": "PROPS", "group": "Luggage & Bags", "name": "Shoulder Bag / Wicker Basket (fanny-pack sized)", "qty": 1, "status": "Potentially Pull Stock", "notes": "For fish/game. Approx fanny pack size.", "budget": "$50\u2013$50", "hrs": 0.5}, {"id": "shopping_bag___smaller_97", "section": "PROPS", "group": "Luggage & Bags", "name": "Shopping Bag \u2014 smaller", "qty": 1, "status": "Needed", "notes": "", "budget": "$10\u2013$40", "hrs": 0.5}, {"id": "shopping_bag___larger__or_hat_box___98", "section": "PROPS", "group": "Luggage & Bags", "name": "Shopping Bag \u2014 larger (or hat box?)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Empty \u2014 could be hat box, confirm with Nisi.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "wrapped_shopping_bundles_99", "section": "PROPS", "group": "Luggage & Bags", "name": "Wrapped Shopping Bundles", "qty": 3, "status": "Potentially Pull Stock", "notes": "Ladies arrive after shopping. Set of 3.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 2.0}, {"id": "dress_box___shopping_bag___marianne_s_ba_100", "section": "PROPS", "group": "Luggage & Bags", "name": "Dress Box / Shopping Bag \u2014 Marianne's Ball gown", "qty": 1, "status": "Needed", "notes": "Over-dress for Ball; avista change.", "budget": "$50\u2013$50", "hrs": 0.5}, {"id": "dress_box___shopping_bag___elinor_s_ball_101", "section": "PROPS", "group": "Luggage & Bags", "name": "Dress Box / Shopping Bag \u2014 Elinor's Ball gown", "qty": 1, "status": "Needed", "notes": "Over-dress for Ball; avista change.", "budget": "$50\u2013$50", "hrs": 0.5}, {"id": "strapped_shoulder_bag__with_newspapers__102", "section": "PROPS", "group": "Luggage & Bags", "name": "Strapped Shoulder Bag (with newspapers)", "qty": 1, "status": "Needed", "notes": "", "budget": "$30\u2013$30", "hrs": 0.5}, {"id": "luggage_cases___act_two_103", "section": "PROPS", "group": "Luggage & Bags", "name": "Luggage Cases \u2014 Act Two", "qty": 2, "status": "Potentially Pull Stock", "notes": "Set of 2 matching cases.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "hat_box___act_two_104", "section": "PROPS", "group": "Luggage & Bags", "name": "Hat Box \u2014 Act Two", "qty": 1, "status": "Potentially Pull Stock", "notes": "Empty.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "dress_box___act_two_105", "section": "PROPS", "group": "Luggage & Bags", "name": "Dress Box \u2014 Act Two", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "laundry_poles_with_wire_106", "section": "PROPS", "group": "Laundry", "name": "Laundry Poles with Wire", "qty": 2, "status": "Needed", "notes": "2 poles; wire strung between. Talk to Dylan re: rigging.", "budget": "$50\u2013$50", "hrs": 5.0}, {"id": "wicket_laundry_basket_107", "section": "PROPS", "group": "Laundry", "name": "Wicket Laundry Basket", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "laundry_sheets_108", "section": "PROPS", "group": "Laundry", "name": "Laundry Sheets", "qty": 2, "status": "Potentially Pull Stock", "notes": "2 sheets for hanging on line.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "pillowcase___laundry_109", "section": "PROPS", "group": "Laundry", "name": "Pillowcase \u2014 laundry", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "bloomers___laundry_110", "section": "PROPS", "group": "Laundry", "name": "Bloomers \u2014 laundry", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "camisole___laundry_111", "section": "PROPS", "group": "Laundry", "name": "Camisole \u2014 laundry", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "wooden_clothes_pins_112", "section": "PROPS", "group": "Laundry", "name": "Wooden Clothes Pins", "qty": 1, "status": "Needed", "notes": "Qty TBD.", "budget": "$5\u2013$15", "hrs": 0.5}, {"id": "sampler__embroidery____small_round_hoop_113", "section": "PROPS", "group": "Art & Craft", "name": "Sampler (embroidery) \u2014 small round hoop", "qty": 1, "status": "Potentially Pull Stock", "notes": "Small round hoop. Must be started but continuous throughout performance.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 2.5}, {"id": "sketch_pad__well_used__drawings_visible__114", "section": "PROPS", "group": "Art & Craft", "name": "Sketch Pad (well used, drawings visible)", "qty": 1, "status": "Needed", "notes": "Few pages of drawings visible to audience when opened.", "budget": "$10\u2013$10", "hrs": 1.0}, {"id": "pencil___for_sketch_pad_115", "section": "PROPS", "group": "Art & Craft", "name": "Pencil \u2014 for Sketch Pad", "qty": 1, "status": "Potentially Pull Stock", "notes": "Travels with P-008A.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "embroidery_sampler_116", "section": "PROPS", "group": "Art & Craft", "name": "Embroidery Sampler", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "easel_117", "section": "PROPS", "group": "Art & Craft", "name": "Easel", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "canvas___silhouette_of_marianne_118", "section": "PROPS", "group": "Art & Craft", "name": "Canvas \u2014 silhouette of Marianne", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "$20\u2013$20", "hrs": 1.5}, {"id": "charcoal_pencil_119", "section": "PROPS", "group": "Art & Craft", "name": "Charcoal Pencil", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "sketching_paper_120", "section": "PROPS", "group": "Art & Craft", "name": "Sketching Paper", "qty": 1, "status": "Potentially Pull Stock", "notes": "Make in shop.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "charcoals_121", "section": "PROPS", "group": "Art & Craft", "name": "Charcoals", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "bell___fanny_s__beautiful__122", "section": "PROPS", "group": "Bells", "name": "Bell \u2014 Fanny's (beautiful)", "qty": 1, "status": "Needed", "notes": "Ornate/beautiful. Distinct from P-026 and P-070.", "budget": "$25\u2013$25", "hrs": 0.5}, {"id": "bell___mrs__dashwood_s__simpler__123", "section": "PROPS", "group": "Bells", "name": "Bell \u2014 Mrs. Dashwood's (simpler)", "qty": 1, "status": "Needed", "notes": "Simpler than Fanny's (P-017).", "budget": "$20\u2013$20", "hrs": 0.5}, {"id": "bell___london_apt___mrs__jennings__124", "section": "PROPS", "group": "Bells", "name": "Bell \u2014 London Apt. (Mrs. Jennings)", "qty": 1, "status": "Needed", "notes": "New, distinct from Fanny's and Mrs. Dashwood's.", "budget": "$25\u2013$25", "hrs": 0.5}, {"id": "bell___sl__revelations__125", "section": "PROPS", "group": "Bells", "name": "Bell \u2014 SL (Revelations)", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "fan__1_of_4__126", "section": "PROPS", "group": "Fans", "name": "Fan (1 of 4)", "qty": 1, "status": "Needed", "notes": "CONFIRM w/ Costume Designer: props or costumes dept?", "budget": "$25\u2013$25", "hrs": 6.0}, {"id": "fan__2_of_4__127", "section": "PROPS", "group": "Fans", "name": "Fan (2 of 4)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Check stock for fans.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "fan__3_of_4__128", "section": "PROPS", "group": "Fans", "name": "Fan (3 of 4)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Check stock for fans.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "fan__4_of_4__129", "section": "PROPS", "group": "Fans", "name": "Fan (4 of 4)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Check stock for fans.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "larger_picnic_basket_130", "section": "PROPS", "group": "Picnic", "name": "Larger Picnic Basket", "qty": 1, "status": "Potentially Pull Stock", "notes": "Same basket reused in Sc 10.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "picnic_blanket_131", "section": "PROPS", "group": "Picnic", "name": "Picnic Blanket", "qty": 1, "status": "Needed", "notes": "", "budget": "$45\u2013$45", "hrs": 0.5}, {"id": "grapes__in_basket__132", "section": "PROPS", "group": "Picnic", "name": "Grapes (in basket)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Confirm if practical or prop.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "tea_biscuits__in_basket__133", "section": "PROPS", "group": "Picnic", "name": "Tea Biscuits (in basket)", "qty": 1, "status": "Needed", "notes": "Confirm if practical or prop.", "budget": "$15\u2013$15", "hrs": 0.5}, {"id": "consumable_buns_134", "section": "PROPS", "group": "Picnic", "name": "Consumable Buns", "qty": 1, "status": "Needed", "notes": "Consumable/practical buns.", "budget": "$20\u2013$20", "hrs": 1.0}, {"id": "smaller_hamper_135", "section": "PROPS", "group": "Picnic", "name": "Smaller Hamper", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "small_rug__4_x4___136", "section": "PROPS", "group": "Picnic", "name": "Small Rug (4'x4')", "qty": 1, "status": "Needed", "notes": "", "budget": "$50\u2013$50", "hrs": 0.5}, {"id": "playing_cards_137", "section": "PROPS", "group": "Picnic", "name": "Playing Cards", "qty": 1, "status": "Needed", "notes": "", "budget": "$20\u2013$20", "hrs": 0.5}, {"id": "tray_of_food_138", "section": "PROPS", "group": "Food on Plates", "name": "Tray of Food", "qty": 1, "status": "Needed", "notes": "", "budget": "$10\u2013$10", "hrs": 1.0}, {"id": "plate__single__on_tray__139", "section": "PROPS", "group": "Food on Plates", "name": "Plate (single, on tray)", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "sheet_music__period_appropriate_140", "section": "PROPS", "group": "Sheet Music", "name": "Sheet Music, period appropriate", "qty": 3, "status": "Potentially Pull Stock", "notes": "Print reproduction period sheet music in shop.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.5}, {"id": "sheet_music_gift___colonel_brandon_to_ma_141", "section": "PROPS", "group": "Sheet Music", "name": "Sheet Music Gift \u2014 Colonel Brandon to Marianne", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.5}, {"id": "stacks_of_piano_sheet_music_142", "section": "PROPS", "group": "Sheet Music", "name": "Stacks of Piano Sheet Music", "qty": 3, "status": "Potentially Pull Stock", "notes": "3 stacks.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.5}, {"id": "tea_caddy_box_143", "section": "PROPS", "group": "Individual", "name": "Tea Caddy Box", "qty": 1, "status": "Potentially Pull Stock", "notes": "Pulling from stock. May require alteration.", "budget": "$20\u2013$20", "hrs": 6.0}, {"id": "carpet__6__long__lovely__144", "section": "PROPS", "group": "Individual", "name": "Carpet (6' long, lovely)", "qty": 1, "status": "Needed", "notes": "Rolled up and removed during transition to Devonshire.", "budget": "$20\u2013$80", "hrs": 0.5}, {"id": "piano_shawl_145", "section": "PROPS", "group": "Individual", "name": "Piano Shawl", "qty": 1, "status": "Needed", "notes": "", "budget": "$15\u2013$60", "hrs": 2.0}, {"id": "oil_lamp__actor_operated_on_off__146", "section": "PROPS", "group": "Individual", "name": "Oil Lamp (actor operated on/off)", "qty": 1, "status": "Needed", "notes": "Needs electric light installed. Travels: A1 Sc1 \u2192 A1 Sc3 \u2192 A1 Sc9 \u2192 A2 Sc9.", "budget": "$0\u2013$180", "hrs": 5.0}, {"id": "ink_well_147", "section": "PROPS", "group": "Individual", "name": "Ink Well", "qty": 1, "status": "Needed", "notes": "Travels with P-010B.", "budget": "$50\u2013$50", "hrs": 0.5}, {"id": "quill_pen_148", "section": "PROPS", "group": "Individual", "name": "Quill Pen", "qty": 1, "status": "Needed", "notes": "Sourced with ink well P-010A.", "budget": "$0\u2013$0", "hrs": 0.5}, {"id": "vase__15_18_inch_tall__149", "section": "PROPS", "group": "Individual", "name": "Vase (15-18 inch tall)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Must be 15-18 inch tall. Pull from stock and confirm height.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "pipe_150", "section": "PROPS", "group": "Individual", "name": "Pipe", "qty": 1, "status": "Potentially Pull Stock", "notes": "Need to pull options from vault for review.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "pillow_151", "section": "PROPS", "group": "Individual", "name": "Pillow", "qty": 1, "status": "Needed", "notes": "", "budget": "$10\u2013$10", "hrs": 1.0}, {"id": "hairbrush_152", "section": "PROPS", "group": "Individual", "name": "Hairbrush", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "handkerchief__monogrammed_e_f___153", "section": "PROPS", "group": "Individual", "name": "Handkerchief (monogrammed E.F.)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Initials E.F.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 2.0}, {"id": "pillows___window_seat__prop_marianne_s_f_154", "section": "PROPS", "group": "Individual", "name": "Pillows \u2014 window seat (prop Marianne's foot)", "qty": 3, "status": "Needed", "notes": "3 pillows for window seat area.", "budget": "$15\u2013$60", "hrs": 0.5}, {"id": "soggy_newspaper_155", "section": "PROPS", "group": "Individual", "name": "Soggy Newspaper", "qty": 1, "status": "Potentially Pull Stock", "notes": "Confirm how wet/look is supposed to read with Nisi.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 2.0}, {"id": "rolled_map_156", "section": "PROPS", "group": "Individual", "name": "Rolled Map", "qty": 1, "status": "Needed", "notes": "", "budget": "$15\u2013$15", "hrs": 1.0}, {"id": "telescope_157", "section": "PROPS", "group": "Individual", "name": "Telescope", "qty": 1, "status": "Needed", "notes": "", "budget": "$129\u2013$129", "hrs": 0.5}, {"id": "bucket_158", "section": "PROPS", "group": "Individual", "name": "Bucket", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "small_bamboo_stick_fishing_rod_159", "section": "PROPS", "group": "Individual", "name": "Small Bamboo/Stick Fishing Rod", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "croquet_mallets_160", "section": "PROPS", "group": "Individual", "name": "Croquet Mallets", "qty": 4, "status": "Potentially Pull Stock", "notes": "Set of 4. May need shop work \u2014 check condition when pulled.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 4.0}, {"id": "dueling_pistol_pair_161", "section": "PROPS", "group": "Individual", "name": "Dueling Pistol Pair", "qty": 2, "status": "Potentially Pull Stock", "notes": "Matching pair, period appropriate.", "budget": "$110\u2013$110", "hrs": 0.5}, {"id": "ornamental_statue__6__tall__162", "section": "PROPS", "group": "Individual", "name": "Ornamental Statue (6\" tall)", "qty": 1, "status": "Needed", "notes": "Depends on stock. Confirm before sourcing.", "budget": "$35\u2013$35", "hrs": 5.0}, {"id": "wrapped_rectangular_package__long_paper__163", "section": "PROPS", "group": "Individual", "name": "Wrapped Rectangular Package (long paper envelope)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Make in shop \u2014 brown paper + twine wrap.", "budget": "$2\u2013$2", "hrs": 0.5}, {"id": "calling_card___willoughby_164", "section": "PROPS", "group": "Individual", "name": "Calling Card \u2014 Willoughby", "qty": 1, "status": "Potentially Pull Stock", "notes": "Left by Willoughby.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "simple_candelabra_165", "section": "PROPS", "group": "Individual", "name": "Simple Candelabra", "qty": 1, "status": "Potentially Pull Stock", "notes": "Same candelabra reused in Sc 5 SR.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "ornate_toothpick_case__gold_pearl__match_166", "section": "PROPS", "group": "Individual", "name": "Ornate Toothpick Case (gold/pearl, matchbox-sized)", "qty": 1, "status": "Needed", "notes": "Gold/pearl finish. Approx matchbox size.", "budget": "$20\u2013$80", "hrs": 0.5}, {"id": "ink_well___elinor_sr_167", "section": "PROPS", "group": "Individual", "name": "Ink Well \u2014 Elinor SR", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "quill_pen___elinor_sr_168", "section": "PROPS", "group": "Individual", "name": "Quill Pen \u2014 Elinor SR", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "ink_well___sl_169", "section": "PROPS", "group": "Individual", "name": "Ink Well \u2014 SL", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "quill_pen___sl_170", "section": "PROPS", "group": "Individual", "name": "Quill Pen \u2014 SL", "qty": 1, "status": "Needed", "notes": "", "budget": "$10\u2013$10", "hrs": 0.5}, {"id": "stack_of_wrapped_newspapers___1_ft_tall__171", "section": "PROPS", "group": "Individual", "name": "Stack of Wrapped Newspapers (~1 ft tall)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Make in shop \u2014 sourced newspapers bundled + wrapped.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 1.0}, {"id": "bucket___act_two_172", "section": "PROPS", "group": "Individual", "name": "Bucket \u2014 Act Two", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "painting_of_chaffinches__16_w_x_24___173", "section": "PROPS", "group": "Individual", "name": "Painting of Chaffinches (16\"w x 24\")", "qty": 1, "status": "Needed", "notes": "Inside sturdy folder P-089B.", "budget": "$20\u2013$20", "hrs": 9.5}, {"id": "sturdy_folder_with_ribbon__holds_paintin_174", "section": "PROPS", "group": "Individual", "name": "Sturdy Folder with Ribbon (holds painting)", "qty": 1, "status": "Needed", "notes": "Folder tied with ribbon.", "budget": "$10\u2013$10", "hrs": 1.0}, {"id": "baby___palmer__charlotte_in_swaddles__175", "section": "PROPS", "group": "Individual", "name": "Baby \u2014 Palmer (Charlotte in swaddles)", "qty": 1, "status": "Potentially Pull Stock", "notes": "Baby doll in period swaddle. Confirm style w/ Costume Designer.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "pack_of_cards_176", "section": "PROPS", "group": "Individual", "name": "Pack of Cards", "qty": 1, "status": "Needed", "notes": "", "budget": "$25\u2013$25", "hrs": 0.5}, {"id": "medicine_bottles_177", "section": "PROPS", "group": "Individual", "name": "Medicine Bottles", "qty": 2, "status": "Potentially Pull Stock", "notes": "Set of 2.", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "wet_rag_178", "section": "PROPS", "group": "Individual", "name": "Wet Rag", "qty": 1, "status": "Potentially Pull Stock", "notes": "", "budget": "Potentially Pull Stock \u2014 $0", "hrs": 0.5}, {"id": "final_scene_effect___falling_petals___ri_179", "section": "PROPS", "group": "Individual", "name": "Final Scene Effect \u2014 falling petals / ribbons / spiral fabric", "qty": 1, "status": "Needed", "notes": "Effect TBC. Options: falling petals, ribbons, or spiral fabric. Confirm with Nisi and SM.", "budget": "TBD", "hrs": 1.0}];
+
+// ── STORAGE ────────────────────────────────────────────────────────────────────
+const DB_KEY = 'sns_props_v1';
+
+function loadDB() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveDB(db) {
+  try { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+  catch(e) { console.warn('Storage full:', e); }
+}
+function getPropData(id) {
+  const db = loadDB();
+  return db[id] || { userNotes:'', directives:'', questionsList:[], spentDollars:'', actualHrs:'', refImgs:[], srcImgs:[] };
+}
+function setPropData(id, data) {
+  const db = loadDB();
+  db[id] = data;
+  saveDB(db);
+}
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let currentFilter = 'all';
+let currentSearch = '';
+let currentView   = 'list'; // 'list' | 'detail' | 'dash'
+let currentPropId = null;
+let saveTimer     = null;
+
+// ── STATUS HELPERS ─────────────────────────────────────────────────────────────
+function statusKey(s) {
+  s = s.toLowerCase();
+  if (s.includes('needed')) return 'needed';
+  if (s.includes('pull')) return 'pull';
+  if (s.includes('various')) return 'various';
+  return 'tbd';
+}
+function statusColor(s) {
+  const k = statusKey(s);
+  return { needed:'#9B2C2C', pull:'#2D5A3D', various:'#4A3566', tbd:'#8A6425' }[k];
+}
+function statusChipClass(s) {
+  return { needed:'chip-status-needed', pull:'chip-status-pull', various:'chip-status-various', tbd:'chip-status-tbd' }[statusKey(s)];
+}
+
+// ── FILTER / SEARCH ────────────────────────────────────────────────────────────
+function onSearch(v) { currentSearch = v.toLowerCase(); renderList(); }
+function setFilter(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function filteredProps() {
+  const db = loadDB();
+  return PROPS_DATA.filter(p => {
+    if (currentSearch) {
+      const hay = (p.name + p.group + p.notes + p.status).toLowerCase();
+      if (!hay.includes(currentSearch)) return false;
+    }
+    const d = db[p.id] || {};
+    switch(currentFilter) {
+      case 'needed':    return statusKey(p.status) === 'needed';
+      case 'pull':      return statusKey(p.status) === 'pull';
+      case 'noted':     return !!(d.userNotes || d.directives || (d.questionsList&&d.questionsList.length));
+      case 'photos':    return !!(d.refImgs?.length || d.srcImgs?.length);
+      case 'questions': return !!(d.questionsList&&d.questionsList.length);
+      case 'FURNITURE': return p.section === 'FURNITURE';
+      case 'PROPS':     return p.section === 'PROPS';
+      default:          return true;
+    }
+  });
+}
+
+// ── RENDER LIST ────────────────────────────────────────────────────────────────
+function renderList() {
+  const props = filteredProps();
+  const db = loadDB();
+  const el = document.getElementById('list-view');
+
+  if (!props.length) {
+    el.innerHTML = '<div class="empty-state">No props match this filter.</div>';
+    return;
+  }
+
+  // Group by section → group
+  const grouped = {};
+  props.forEach(p => {
+    const key = p.section + '||' + p.group;
+    if (!grouped[key]) grouped[key] = { section: p.section, group: p.group, items: [] };
+    grouped[key].items.push(p);
+  });
+
+  let html = '';
+  let lastSection = null;
+  Object.values(grouped).forEach(({ section, group, items }) => {
+    if (section !== lastSection) {
+      html += `<div class="section-header">${section}</div>`;
+      lastSection = section;
+    }
+    if (group && group !== 'FURNITURE — BOTH ACTS' && group !== 'Individual') {
+      html += `<div class="group-header">${group}</div>`;
+    }
+    items.forEach(p => {
+      const d = db[p.id] || {};
+      const hasData = !!(d.userNotes || d.directives || (d.questionsList&&d.questionsList.length) || d.refImgs?.length || d.srcImgs?.length || d.spentDollars || d.actualHrs);
+      const effectiveStatus = d.userStatus || p.status;
+      const dot = statusColor(effectiveStatus);
+      const noteInd  = (d.userNotes || d.directives || (d.questionsList&&d.questionsList.length)) ? 'active' : '';
+      const photoInd = (d.refImgs?.length || d.srcImgs?.length) ? 'active' : '';
+      const qInd     = (d.questionsList&&d.questionsList.length) ? 'active' : '';
+      html += `
+        <div class="prop-row${hasData?' has-data':''}" onclick="openProp('${p.id}')">
+          <div class="prop-status-dot" style="background:${dot}"></div>
+          <div style="flex:1;min-width:0">
+            <div class="prop-name">${p.name}</div>
+            <div class="prop-meta">qty ${p.qty} · ${p.budget}</div>
+          </div>
+          <div class="prop-indicators">
+            <span class="ind ${noteInd}" title="Notes">✎</span>
+            <span class="ind ${photoInd}" title="Photos">◻</span>
+            <span class="ind ${qInd}" title="Questions">?</span>
+          </div>
+          <span class="prop-chevron">›</span>
+        </div>`;
+    });
+  });
+  el.innerHTML = html;
+}
+
+// ── OPEN PROP DETAIL ───────────────────────────────────────────────────────────
+function openProp(id) {
+  currentPropId = id;
+  currentView = 'detail';
+  const prop = PROPS_DATA.find(p => p.id === id);
+  const data = getPropData(id);
+  renderDetail(prop, data);
+  document.getElementById('list-view').style.display      = 'none';
+  document.getElementById('detail-view').style.display    = 'block';
+  document.getElementById('dash-view').style.display      = 'none';
+  document.getElementById('questions-view').style.display = 'none';
+  document.getElementById('search-bar').style.display  = 'none';
+  document.getElementById('filter-bar').style.display  = 'none';
+  document.getElementById('header-back').style.display = 'block';
+  document.getElementById('header-title').textContent  = prop.name.length > 28
+    ? prop.name.slice(0,25)+'…' : prop.name;
+  document.getElementById('header-sub').textContent = prop.group;
+  document.getElementById('detail-view').scrollTop = 0;
+  updateNav('list');
+}
+
+function renderDetail(prop, data) {
+  // Use user-overridden status if set, else original
+  const currentStatus = data.userStatus || prop.status;
+  const scc = statusChipClass(currentStatus);
+  const shortBudget = prop.budget.replace('Potentially Pull Stock \u2014 ', '');
+
+  const STATUS_OPTIONS = [
+    { label: 'Needed',             value: 'Needed',                    cls: 'chip-status-needed'  },
+    { label: 'Potentially Pull Stock', value: 'Potentially Pull Stock', cls: 'chip-status-pull'    },
+    { label: 'Pull Stock — Confirmed', value: 'Pull Stock — Confirmed', cls: 'chip-status-pull'    },
+    { label: 'Sourced',            value: 'Sourced',                   cls: 'chip-status-pull'    },
+    { label: 'In Progress',        value: 'In Progress',               cls: 'chip-status-tbd'     },
+    { label: 'Complete',           value: 'Complete',                  cls: 'chip-status-pull'    },
+    { label: 'Various',            value: 'Various',                   cls: 'chip-status-various' },
+    { label: 'TBD',                value: 'TBD',                       cls: 'chip-status-tbd'     },
+  ];
+
+  const statusPickerHTML = STATUS_OPTIONS.map(opt => {
+    const bg = { 'chip-status-needed':'#9B2C2C','chip-status-pull':'#2D5A3D','chip-status-various':'#4A3566','chip-status-tbd':'#8A6425' }[opt.cls];
+    const sel = currentStatus === opt.value ? ' selected' : '';
+    return `<button class="status-opt${sel}" style="background:${bg};color:white"
+      onclick="setStatus('${opt.value}')">${opt.label}</button>`;
+  }).join('');
+
+  const el = document.getElementById('detail-view');
+  el.innerHTML = `
+    <div class="detail-hero">
+      <div class="detail-group-label">${prop.section} · ${prop.group}</div>
+      <div class="detail-name">${prop.name}</div>
+      <div class="detail-chips">
+        <span class="chip chip-info">qty ${prop.qty}</span>
+        <span class="chip chip-info">${shortBudget}</span>
+        <span class="chip chip-info">${prop.hrs} shop hrs</span>
+      </div>
+    </div>
+
+    <div class="detail-body">
+
+      <!-- STATUS PICKER -->
+      <div class="detail-card">
+        <div class="detail-card-header">Status</div>
+        <div class="status-picker">${statusPickerHTML}</div>
+      </div>
+
+      ${prop.notes ? `
+      <div class="detail-card">
+        <div class="detail-card-header">Notes from prop list</div>
+        <div class="detail-notes-text">${prop.notes}</div>
+      </div>` : ''}
+
+      <div class="detail-card">
+        <div class="fields-row">
+          <div class="field-half">
+            <label class="field-label">$ Spent (actual)</label>
+            <input class="field-inline" type="text" inputmode="decimal"
+              placeholder="—" value="${data.spentDollars||''}"
+              oninput="fieldChange('spentDollars', this.value)">
+          </div>
+          <div class="field-half">
+            <label class="field-label">Actual Shop Hours</label>
+            <input class="field-inline" type="text" inputmode="decimal"
+              placeholder="—" value="${data.actualHrs||''}"
+              oninput="fieldChange('actualHrs', this.value)">
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-card">
+        <label class="field-label">My Notes</label>
+        <textarea class="field-input" placeholder="Add your notes here…"
+          oninput="fieldChange('userNotes', this.value)"
+          rows="4">${data.userNotes||''}</textarea>
+      </div>
+
+      <div class="detail-card">
+        <label class="field-label">Directives</label>
+        <textarea class="field-input" placeholder="Directives from director / designer…"
+          oninput="fieldChange('directives', this.value)"
+          rows="3">${data.directives||''}</textarea>
+      </div>
+
+      <div class="detail-card">
+        <div class="img-zone-label">
+          <span>Questions &amp; Clarifications</span>
+          <button class="img-zone-add-btn" onclick="addQuestion()">+ Question</button>
+        </div>
+        <div class="q-card-list" id="q-card-list">
+          ${renderQuestionCards(data.questionsList||[])}
+        </div>
+      </div>
+
+      <!-- REFERENCE IMAGE ZONE -->
+      <div class="detail-card">
+        <div class="img-zone-label">
+          <span>Inspiration / Reference / Sketch</span>
+          <button class="img-zone-add-btn" onclick="triggerImgUpload('ref')">+ Add</button>
+        </div>
+        <div class="img-zone-wrap">
+          <div id="ref-grid" class="${data.refImgs?.length ? 'img-grid' : 'img-grid empty'}">
+            ${renderImgGrid(data.refImgs||[], 'ref')}
+          </div>
+        </div>
+        <input class="img-file-input" id="ref-file" type="file"
+          accept="image/*" multiple capture="environment"
+          onchange="handleImgs(this,'ref')">
+      </div>
+
+      <!-- SOURCING IMAGE ZONE -->
+      <div class="detail-card">
+        <div class="img-zone-label">
+          <span style="color:#C9963A">Sourcing Options — Pick From These</span>
+          <button class="img-zone-add-btn" style="background:#8A6425" onclick="triggerImgUpload('src')">+ Add</button>
+        </div>
+        <div class="img-zone-wrap">
+          <div id="src-grid" class="${data.srcImgs?.length ? 'img-grid' : 'img-grid empty'}">
+            ${renderImgGrid(data.srcImgs||[], 'src')}
+          </div>
+        </div>
+        <input class="img-file-input" id="src-file" type="file"
+          accept="image/*" multiple
+          onchange="handleImgs(this,'src')">
+      </div>
+
+    </div>`;
+}
+
+function renderImgGrid(imgs, zone) {
+  if (!imgs.length) return '<span class="img-placeholder-text">Tap + Add to upload</span>';
+  return imgs.map((src, i) => `
+    <div class="img-thumb-wrap">
+      <img class="img-thumb" src="${src}" loading="lazy">
+      <button class="img-del" onclick="deleteImg('${zone}',${i})">×</button>
+    </div>`).join('');
+}
+
+function triggerImgUpload(zone) {
+  document.getElementById(zone + '-file').click();
+}
+
+async function handleImgs(input, zone) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const data = getPropData(currentPropId);
+  const key = zone === 'ref' ? 'refImgs' : 'srcImgs';
+  if (!data[key]) data[key] = [];
+
+  for (const file of files) {
+    const b64 = await compressImage(file, 800, 0.72);
+    data[key].push(b64);
+  }
+  setPropData(currentPropId, data);
+  refreshImgGrid(zone, data[key]);
+  input.value = '';
+  showToast();
+}
+
+function deleteImg(zone, idx) {
+  const data = getPropData(currentPropId);
+  const key = zone === 'ref' ? 'refImgs' : 'srcImgs';
+  data[key].splice(idx, 1);
+  setPropData(currentPropId, data);
+  refreshImgGrid(zone, data[key]);
+  showToast();
+}
+
+function refreshImgGrid(zone, imgs) {
+  const grid = document.getElementById(zone + '-grid');
+  if (!grid) return;
+  grid.className = imgs.length ? 'img-grid' : 'img-grid empty';
+  grid.innerHTML = renderImgGrid(imgs, zone);
+}
+
+// Compress image to base64
+function compressImage(file, maxDim, quality) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = h * maxDim / w; w = maxDim; }
+          else       { w = w * maxDim / h; h = maxDim; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── FIELD AUTOSAVE ─────────────────────────────────────────────────────────────
+function setStatus(value) {
+  const data = getPropData(currentPropId);
+  data.userStatus = value;
+  setPropData(currentPropId, data);
+  // Update picker UI without full re-render
+  document.querySelectorAll('.status-opt').forEach(btn => {
+    btn.classList.toggle('selected', btn.textContent.trim().toLowerCase() === value.toLowerCase());
+  });
+  showToast();
+}
+
+function fieldChange(field, value) {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const data = getPropData(currentPropId);
+    data[field] = value;
+    setPropData(currentPropId, data);
+    showToast();
+  }, 600);
+}
+
+function showToast() {
+  const t = document.getElementById('save-toast');
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ── VIEWS ──────────────────────────────────────────────────────────────────────
+function showList() {
+  currentView = 'list';
+  currentPropId = null;
+  document.getElementById('list-view').style.display      = 'block';
+  document.getElementById('detail-view').style.display    = 'none';
+  document.getElementById('dash-view').style.display      = 'none';
+  document.getElementById('questions-view').style.display = 'none';
+  document.getElementById('search-bar').style.display  = 'block';
+  document.getElementById('filter-bar').style.display  = 'flex';
+  document.getElementById('header-back').style.display = 'none';
+  document.getElementById('header-title').textContent  = 'Sense & Sensibility';
+  document.getElementById('header-sub').textContent    = 'Props Design & Management';
+  renderList();
+  updateNav('list');
+}
+
+function showDash() {
+  currentView = 'dash';
+  currentPropId = null;
+  document.getElementById('list-view').style.display      = 'none';
+  document.getElementById('detail-view').style.display    = 'none';
+  document.getElementById('dash-view').style.display      = 'block';
+  document.getElementById('questions-view').style.display = 'none';
+  document.getElementById('search-bar').style.display  = 'none';
+  document.getElementById('filter-bar').style.display  = 'none';
+  document.getElementById('header-back').style.display = 'none';
+  document.getElementById('header-title').textContent  = 'Dashboard';
+  document.getElementById('header-sub').textContent    = 'S&S Props';
+  renderDash();
+  updateNav('dash');
+}
+
+const RECIPIENTS = ['Scenic Designer','Scenic Tech','Costumes','Director','Advisor','Other'];
+
+function recipientOptions(selected) {
+  return `<option value="">— who? —</option>` +
+    RECIPIENTS.map(r =>
+      `<option value="${r}" ${selected===r?'selected':''}>${r}</option>`
+    ).join('');
+}
+
+function renderQuestionCards(list) {
+  if (!list.length) {
+    return `<button class="q-add-btn" onclick="addQuestion()">+ Add a question</button>`;
+  }
+  return list.map((q, i) => `
+    <div class="q-card" id="qcard-${i}">
+      <div class="q-card-header">
+        <select class="q-card-select" onchange="updateQuestion(${i},'recipient',this.value)">
+          ${recipientOptions(q.recipient)}
+        </select>
+        <button class="q-card-del" onclick="deleteQuestion(${i})">×</button>
+      </div>
+      <textarea class="q-card-textarea"
+        placeholder="Type your question…"
+        oninput="updateQuestion(${i},'text',this.value)"
+        rows="3">${q.text||''}</textarea>
+    </div>`).join('') +
+    `<button class="q-add-btn" onclick="addQuestion()">+ Add another question</button>`;
+}
+
+function addQuestion() {
+  const data = getPropData(currentPropId);
+  if (!data.questionsList) data.questionsList = [];
+  data.questionsList.push({ id: Date.now(), text: '', recipient: '' });
+  setPropData(currentPropId, data);
+  const el = document.getElementById('q-card-list');
+  if (el) el.innerHTML = renderQuestionCards(data.questionsList);
+  const textareas = el.querySelectorAll('.q-card-textarea');
+  if (textareas.length) textareas[textareas.length-1].focus();
+  showToast();
+}
+
+function deleteQuestion(idx) {
+  const data = getPropData(currentPropId);
+  data.questionsList.splice(idx, 1);
+  setPropData(currentPropId, data);
+  const el = document.getElementById('q-card-list');
+  if (el) el.innerHTML = renderQuestionCards(data.questionsList);
+  showToast();
+}
+
+function updateQuestion(idx, field, value) {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const data = getPropData(currentPropId);
+    if (!data.questionsList || !data.questionsList[idx]) return;
+    data.questionsList[idx][field] = value;
+    setPropData(currentPropId, data);
+    showToast();
+  }, 500);
+}
+
+function showQuestions() {
+  currentView = 'questions';
+  currentPropId = null;
+  document.getElementById('list-view').style.display      = 'none';
+  document.getElementById('detail-view').style.display    = 'none';
+  document.getElementById('dash-view').style.display      = 'none';
+  document.getElementById('questions-view').style.display = 'block';
+  document.getElementById('search-bar').style.display     = 'none';
+  document.getElementById('filter-bar').style.display     = 'none';
+  document.getElementById('header-back').style.display    = 'none';
+  document.getElementById('header-title').textContent     = 'Questions';
+  document.getElementById('header-sub').textContent       = 'Grouped by recipient';
+  renderQuestions();
+  updateNav('questions');
+}
+
+function renderQuestions() {
+  const db = loadDB();
+  const grouped = {};
+  RECIPIENTS.forEach(r => grouped[r] = []);
+
+  PROPS_DATA.forEach(p => {
+    const d = db[p.id] || {};
+    const ql = d.questionsList || [];
+    ql.forEach(q => {
+      if (!q.text || !q.text.trim()) return;
+      const r = q.recipient || 'Other';
+      if (!grouped[r]) grouped[r] = [];
+      grouped[r].push({ prop: p, text: q.text.trim() });
+    });
+  });
+
+  const hasAny = RECIPIENTS.some(r => grouped[r].length > 0);
+  const el = document.getElementById('questions-view');
+
+  if (!hasAny) {
+    el.innerHTML = `
+      <div class="q-empty">
+        <div class="q-empty-icon">✉</div>
+        No questions logged yet.<br>
+        Open any prop and tap <strong>+ Question</strong><br>to add one.
+      </div>`;
+    return;
+  }
+
+  let html = '';
+  RECIPIENTS.forEach(recipient => {
+    const items = grouped[recipient];
+    if (!items.length) return;
+    html += `
+      <div class="q-recipient-block">
+        <div class="q-recipient-header">
+          <span>${recipient} <span style="opacity:0.5;font-weight:400">(${items.length})</span></span>
+          <button class="q-email-btn" onclick="emailRecipient('${recipient}')">✉ Email</button>
+        </div>
+        ${items.map(({prop, text}) => `
+          <div class="q-item" onclick="openProp('${prop.id}')">
+            <div class="q-prop-name">${prop.name}</div>
+            <div class="q-text">${text}</div>
+          </div>`).join('')}
+      </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function emailRecipient(recipient) {
+  const db = loadDB();
+  const items = [];
+  PROPS_DATA.forEach(p => {
+    const d = db[p.id] || {};
+    const ql = d.questionsList || [];
+    ql.forEach(q => {
+      if (!q.text || !q.text.trim()) return;
+      if ((q.recipient || 'Other') !== recipient) return;
+      items.push({ name: p.name, text: q.text.trim() });
+    });
+  });
+  if (!items.length) return;
+
+  const subject = encodeURIComponent(`S&S Props — Questions for ${recipient}`);
+  const lines = items.map(({name, text}) => `PROP: ${name}\n${text}`).join('\n\n---\n\n');
+  const body = encodeURIComponent(
+    `Hi,\n\nI have the following prop questions for you regarding Sense & Sensibility:\n\n---\n\n${lines}\n\n---\n\nThanks!\nNoah`
+  );
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+function updateNav(active) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const map = { list:'nav-list', dash:'nav-dash', questions:'nav-questions' };
+  if (map[active]) document.getElementById(map[active])?.classList.add('active');
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────────
+function renderDash() {
+  const db = loadDB();
+  const total    = PROPS_DATA.length;
+  const needed   = PROPS_DATA.filter(p => { const d=db[p.id]||{}; return statusKey(d.userStatus||p.status) === 'needed'; }).length;
+  const withNotes= PROPS_DATA.filter(p => { const d=db[p.id]||{}; return !!(d.userNotes||d.directives||(d.questionsList&&d.questionsList.length)); }).length;
+  const withImgs = PROPS_DATA.filter(p => { const d=db[p.id]||{}; return !!(d.refImgs?.length||d.srcImgs?.length); }).length;
+  const withQ    = PROPS_DATA.filter(p => { const d=db[p.id]||{}; return !!(d.questionsList&&d.questionsList.some(q=>q.text&&q.text.trim())); }).length;
+  const withSpent= PROPS_DATA.filter(p => { const d=db[p.id]||{}; return !!d.spentDollars; }).length;
+
+  // Items with open questions
+  const openQ = PROPS_DATA.filter(p => { const d=db[p.id]||{}; return !!(d.questionsList&&d.questionsList.some(q=>q.text&&q.text.trim())); });
+  // Needed props without notes or photos
+  const needingAttention = PROPS_DATA.filter(p => {
+    const d=db[p.id]||{};
+    if (statusKey(d.userStatus||p.status) !== 'needed') return false;
+    return !(d.userNotes||d.refImgs?.length||d.srcImgs?.length);
+  }).slice(0, 8);
+
+  const el = document.getElementById('dash-view');
+  el.innerHTML = `
+    <div class="dash-title">Production Overview</div>
+    <div class="dash-stat-grid">
+      <div class="dash-stat highlight">
+        <div class="dash-stat-num">${total}</div>
+        <div class="dash-stat-label">Total Props</div>
+      </div>
+      <div class="dash-stat highlight">
+        <div class="dash-stat-num">${needed}</div>
+        <div class="dash-stat-label">Needed</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num">${withNotes}</div>
+        <div class="dash-stat-label">With Notes</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num">${withImgs}</div>
+        <div class="dash-stat-label">With Photos</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num">${withQ}</div>
+        <div class="dash-stat-label">Open Qs</div>
+      </div>
+      <div class="dash-stat">
+        <div class="dash-stat-num">${withSpent}</div>
+        <div class="dash-stat-label">Costs Logged</div>
+      </div>
+    </div>
+
+    ${openQ.length ? `
+    <div class="dash-section-title">Open Questions (${openQ.length})</div>
+    ${openQ.slice(0,10).map(p => {
+      const d=db[p.id]||{};
+      return `
+      <div class="dash-item" onclick="openProp('${p.id}')">
+        <div class="prop-status-dot" style="background:${statusColor(d.userStatus||p.status)}"></div>
+        <div class="dash-item-name">${p.name}</div>
+        <div class="dash-item-tag">${(d.questionsList||[]).filter(q=>q.text).length} Q</div>
+      </div>`;}).join('')}
+    ` : ''}
+
+    ${needingAttention.length ? `
+    <div class="dash-section-title">Needed — No Notes Yet (${needingAttention.length})</div>
+    ${needingAttention.map(p => `
+      <div class="dash-item" onclick="openProp('${p.id}')">
+        <div class="prop-status-dot" style="background:#9B2C2C"></div>
+        <div class="dash-item-name">${p.name}</div>
+        <div class="dash-item-tag">${p.budget}</div>
+      </div>`).join('')}
+    ` : ''}
+
+    <button class="export-btn" onclick="exportData()">↑ Export All Data</button>
+  `;
+}
+
+// ── EXPORT ─────────────────────────────────────────────────────────────────────
+function exportData() {
+  const db = loadDB();
+  const out = PROPS_DATA.map(p => {
+    const d = db[p.id] || {};
+    return {
+      name:      p.name,
+      section:   p.section,
+      group:     p.group,
+      origStatus:p.status,
+      status:    d.userStatus || p.status,
+      qty:       p.qty,
+      budget:    p.budget,
+      hrs:       p.hrs,
+      userNotes: d.userNotes    || '',
+      directives:d.directives   || '',
+      questions: (d.questionsList||[]).filter(q=>q.text).map(q=>`[${q.recipient||'Other'}] ${q.text}`).join(' | ') || '',
+      spentDollars: d.spentDollars || '',
+      actualHrs: d.actualHrs    || '',
+      refImgCount:  (d.refImgs  || []).length,
+      srcImgCount:  (d.srcImgs  || []).length,
+    };
+  });
+
+  const csv = [
+    ['Name','Section','Group','Original Status','Current Status','Qty','Budget','Shop Hrs',
+     'My Notes','Directives','Questions','$ Spent','Actual Hrs',
+     'Ref Photos','Sourcing Photos'].join(','),
+    ...out.map(r => [
+      r.name, r.section, r.group, r.origStatus, r.status, r.qty, r.budget, r.hrs,
+      r.userNotes, r.directives, r.questions, r.spentDollars, r.actualHrs,
+      r.refImgCount, r.srcImgCount
+    ].map(v => '"' + String(v||'').replace(/"/g,'""') + '"').join(','))
+  ].join('\n');
+
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'SenseAndSensibility_Props_Export.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+renderList();
+</script>
+</body>
+</html>
